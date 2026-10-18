@@ -29,9 +29,21 @@ jobs:
         python -m pip install --upgrade pip setuptools
         pip install "cython<3.0.0" buildozer
 
+    - name: Accept Android SDK Licenses
+      run: |
+        mkdir -p ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest
+        # Запускаємо buildozer спочатку для ініціалізації SDK, потім автоматично приймаємо всі ліцензії
+        p4a --version || true
+        yes | buildozer android status || true
+        yes | $HOME/.buildozer/android/platform/android-sdk/tools/bin/sdkmanager --licenses || true
+        yes | $HOME/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses || true
+      continue-on-error: true
+
     - name: Build APK with Buildozer
       run: |
         buildozer -v android debug
+      env:
+        ACCEPT_BUILD_TOOLS_CHECKSUM: 1
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
